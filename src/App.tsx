@@ -3,7 +3,7 @@ import './App.css'
 import ComponentAddTodo from './Components/ComponentAddTodo/ComponentAddToDo'
 import { RootState } from './redux/store';
 import ComponentListToDo from './Components/ComponentListToDo/ComponentListToDo';
-import { setCompleteTodo, setIsEditing } from './redux/mainToDoReducer';
+import { setCompleteTodo, setIsEditing, ToDoType } from './redux/mainToDoReducer';
 import { getToDoDataFromLocalStorage, setJsonArray } from './redux/helperFunction';
 import { Checkbox, Container, Typography } from '@mui/material';
 import { styles } from './AppStyle';
@@ -29,6 +29,14 @@ function App() {
     dispatch(setIsEditing({editing: true, taskId: id, task}))
   };
   const onCompletedChange = (completed: boolean) => {
+    if (completed && pendingTodo) {
+      setCompletedTasks(completed);
+      setPendingTodo(false)
+      const allData = getToDoDataFromLocalStorage();
+      const newArray = allData.filter((item: ToDoType) => item.isCompleted === true);
+      dispatch(setCompleteTodo(newArray));
+      return;
+    }
     if (completed) {
       setCompletedTasks(completed);
       setPendingTodo(false)
@@ -41,6 +49,14 @@ function App() {
     dispatch(setCompleteTodo(allData));
   };
 const onPendingChange = (pending: boolean) => {
+  if (pending && completedTasks) {
+    setPendingTodo(pending);
+    setCompletedTasks(false);
+    const allData = getToDoDataFromLocalStorage();
+    const newArray = allData.filter((item: ToDoType) => item.isCompleted === false);
+    dispatch(setCompleteTodo(newArray));
+    return;
+  }
   if(pending){
     setPendingTodo(pending);
     setCompletedTasks(false);
@@ -58,7 +74,7 @@ const onPendingChange = (pending: boolean) => {
       <Container sx={styles.filterContainer}>
         <Checkbox onChange={(_e, completed) => onCompletedChange(completed)} checked={completedTasks}/>
           <Typography>Completed</Typography>
-          <Checkbox onChange={(_e, pending) => onPendingChange(pending)} />
+          <Checkbox onChange={(_e, pending) => onPendingChange(pending)} checked={pendingTodo} />
         <Typography>Pending</Typography>
       </Container>
       <ComponentAddTodo />
